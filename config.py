@@ -1,6 +1,8 @@
 """
 Reference -  https://www.iana.org/domains/root/servers
 """
+import dns
+
 text_template = """
 QUESTION SECTION:
 {question} IN {question_type}
@@ -30,7 +32,7 @@ NS = 2
 CNAME = 5
 MX = 15
 SUCCESS = 0
-
+KSK_FLAG = 257
 q_t = {1: "A", 2: "NS", 5: "CNAME", 15: "MX"}
 '''
 #return codes
@@ -48,3 +50,44 @@ q_t = {1: "A", 2: "NS", 5: "CNAME", 15: "MX"}
  	BADVERS = 16
 
 '''
+
+
+
+top_25_sites =[
+"Google.com",
+"Youtube.com",
+"Facebook.com",
+"Reddit.com",
+"Amazon.com",
+"Wikipedia.org",
+"Yahoo.com",
+"Twitter.com",
+"Ebay.com",
+"Netflix.com",
+"Linkedin.com",
+"Instagram.com",
+"Twitch.tv",
+"Imgur.com",
+"Office.com",
+"Diply.com",
+"Microsoftonline.com",
+"Craigslist.org",
+"Live.com",
+"Pornhub.com",
+"Wikia.com",
+"T.co",
+"Espn.com",
+"Cnn.com",
+"Tumblr.com",
+]
+
+
+
+q_type ={
+    "A":dns.rdatatype.A,
+    "NS":dns.rdatatype.NS,
+    "MX":dns.rdatatype.MX
+}
+
+google_dns = "8.8.4.4"
+stony_brook_dns = "130.245.255.4"

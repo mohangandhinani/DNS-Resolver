@@ -9,15 +9,16 @@ from exception_handler import exception_handler
 
 
 class DnsResolve(object):
-    def __init__(self):
-        self.query, self.query_type = self.arg_parse()
+    def __init__(self,query=None,query_type=None):
+        if not query and not query_type:
+            self.query, self.query_type = self.arg_parse()
+        else:
+            self.query, self.query_type = query,query_type
         self.query_time = None
 
     def execute(self):
-        start = time.time()
+        self.start = time.time()
         ans_section, ip_list = self.launch_queries()
-        end = time.time()
-        self.query_time = (end - start) * 100
         self.formatter(str(ans_section))
 
     def arg_parse(self):
@@ -34,20 +35,19 @@ class DnsResolve(object):
         query = query if query else self.query
         for server_ip in servers_to_resolve:
             query_type, qname_object = self.build_query(query, query_type)
-            try:
-                dns_query = dns.message.make_query(qname=qname_object, rdtype=query_type)
-                dns_response = dns.query.udp(q=dns_query, where=server_ip, timeout=10)
-                v = self.response_handler(dns_response, query)
-                if v:
-                    ans_section, ip_list = v
-                    if ip_list:
-                        return ans_section, ip_list
-            except Exception as e:
-                exception_handler(e)
+            # try:
+            dns_query = dns.message.make_query(qname=qname_object, rdtype=query_type)
+            dns_response = dns.query.udp(q=dns_query, where=server_ip, timeout=10)
+            v = self.response_handler(dns_response, query)
+            if v:
+                ans_section, ip_list = v
+                if ip_list:
+                    return ans_section, ip_list
+            # except Exception as e:
+            #     exception_handler(e)
 
     def build_query(self, query, query_type):
-        return getattr(dns.rdatatype, query_type, None) if str(
-            query_type).isalpha() else query_type, dns.name.from_text(query) if query.isalpha() else query
+        return q_type.get(query_type,dns.rdatatype.CNAME), dns.name.from_text(query) if query.isalpha() else query
 
     def response_handler(self, dns_response, query):
         if dns_response.rcode() == SUCCESS:
@@ -65,10 +65,15 @@ class DnsResolve(object):
             return None, "dns response failed with rcode {0}".format(dns_response.rcode())
 
     def answer_section_handler(self, dns_response):
+        if self.query_type in("NS","MX"):
+            return dns_response,["127.0.0.1"]
         ans_section = dns_response.answer
         for answer in ans_section:
             if self.typ(answer) == CNAME:
-                return self.launch_queries(query_type="CNAME", query=str(answer.items[0]))
+                if self.query_type!="CNAME":
+                    return self.launch_queries(query_type="CNAME", query=str(answer.items[0]))
+                else:
+                    return dns_response,["127.0.0.1"]
             else:
                 ip_list = []
                 for ans in ans_section:
@@ -99,10 +104,12 @@ class DnsResolve(object):
     def formatter(self, ans_section):
         regex = r"ANSWER(.*?);"
         ans = re.findall(regex, ans_section, re.MULTILINE | re.DOTALL)
-        ans = "".join([self.transform(i) for i in ans])
+        ans = "\n".join([self.transform(i) for i in ans[0].lstrip().split("\n") if i])
+        end = time.time()
+        self.query_time = (end - self.start) * 100
         date = time.strftime("%c")
-        print text_template.format(question=self.query, question_type=self.query_type, answer=ans,
-                                   query_time=self.query_time, date=date, message_size=10)
+        # print text_template.format(question=self.query, question_type=self.query_type, answer=ans,
+        #                            query_time=self.query_time, date=date, message_size=62)
 
     def transform(self, txt):
         return self.query + " " + " ".join(txt.split()[1:])

@@ -1,0 +1,58 @@
+input :
+python mydig cs.stonybrook.edu NS
+
+output
+QUESTION SECTION:
+cs.stonybrook.edu IN NS
+
+ANSWER SECTION:
+cs.stonybrook.edu 900 IN NS mewho.stonybrook.edu.
+cs.stonybrook.edu 900 IN NS nocnoc.stonybrook.edu.
+cs.stonybrook.edu 900 IN NS whoisthere.stonybrook.edu.
+
+Query time: 16.7999982834 msec
+WHEN: 02/18/18 14:08:30
+MSG SIZE rcvd: 62
+-------------------------------------------------------------------------------------------------
+python mydig cs.stonybrook.edu  MX
+output
+QUESTION SECTION:
+cs.stonybrook.edu IN MX
+
+ANSWER SECTION:
+cs.stonybrook.edu 900 IN MX 5 alt2.aspmx.l.google.com.
+cs.stonybrook.edu 900 IN MX 5 alt1.aspmx.l.google.com.
+cs.stonybrook.edu 900 IN MX 2 aspmx.l.google.com.
+cs.stonybrook.edu 900 IN MX 10 aspmx3.googlemail.com.
+cs.stonybrook.edu 900 IN MX 10 aspmx2.googlemail.com.
+
+Query time: 23.0999946594 msec
+WHEN: 02/18/18 14:09:04
+MSG SIZE rcvd: 62
+-------------------------------------------------------------------------------------------------------------------------------
+python mydig cs.stonybrook.edu  A
+output
+
+QUESTION SECTION:
+cs.stonybrook.edu IN A
+
+ANSWER SECTION:
+cs.stonybrook.edu 900 IN A 107.22.178.157
+
+Query time: 24.5000123978 msec
+WHEN: 02/18/18 14:09:42
+MSG SIZE rcvd: 62
+-------------------------------------------------------------------------------------------------------------
+python mydig www.cnn.com  CNAME
+output
+QUESTION SECTION:
+www.cnn.com IN CNAME
+
+ANSWER SECTION:
+www.cnn.com 300 IN CNAME turner-tls.map.fastly.net.
+
+Query time: 18.499994278 msec
+WHEN: 02/18/18 14:10:33
+MSG SIZE rcvd: 62
+
+
