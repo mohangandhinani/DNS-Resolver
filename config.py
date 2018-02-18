@@ -1,8 +1,17 @@
 """
 Reference -  https://www.iana.org/domains/root/servers
 """
-import dns
+text_template = """
+QUESTION SECTION:
+{question} IN {question_type}
 
+ANSWER SECTION:
+{answer}
+
+Query time: {query_time} msec
+WHEN: {date}
+MSG SIZE rcvd: {message_size}
+"""
 root_servers = ['198.41.0.4',
                 '192.228.79.201',
                 '192.33.4.12',
@@ -22,6 +31,7 @@ CNAME = 5
 MX = 15
 SUCCESS = 0
 
+q_t = {1: "A", 2: "NS", 5: "CNAME", 15: "MX"}
 '''
 #return codes
  	NOERROR = 0
