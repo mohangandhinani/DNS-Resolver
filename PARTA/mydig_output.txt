@@ -12,7 +12,7 @@ cs.stonybrook.edu 900 IN NS whoisthere.stonybrook.edu.
 
 Query time: 16.7999982834 msec
 WHEN: 02/18/18 14:08:30
-MSG SIZE rcvd: 62
+MSG SIZE rcvd: 60
 -------------------------------------------------------------------------------------------------
 python mydig cs.stonybrook.edu  MX
 output
@@ -28,7 +28,7 @@ cs.stonybrook.edu 900 IN MX 10 aspmx2.googlemail.com.
 
 Query time: 23.0999946594 msec
 WHEN: 02/18/18 14:09:04
-MSG SIZE rcvd: 62
+MSG SIZE rcvd: 65
 -------------------------------------------------------------------------------------------------------------------------------
 python mydig cs.stonybrook.edu  A
 output
@@ -41,7 +41,7 @@ cs.stonybrook.edu 900 IN A 107.22.178.157
 
 Query time: 24.5000123978 msec
 WHEN: 02/18/18 14:09:42
-MSG SIZE rcvd: 62
+MSG SIZE rcvd: 67
 -------------------------------------------------------------------------------------------------------------
 python mydig www.cnn.com  CNAME
 output
@@ -53,6 +53,6 @@ www.cnn.com 300 IN CNAME turner-tls.map.fastly.net.
 
 Query time: 18.499994278 msec
 WHEN: 02/18/18 14:10:33
-MSG SIZE rcvd: 62
+MSG SIZE rcvd: 68
 
 

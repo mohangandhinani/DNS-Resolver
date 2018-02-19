@@ -4,8 +4,7 @@ import time
 
 import dns.query
 
-from config import *
-from exception_handler import exception_handler
+from COMMON.config import *
 
 
 class DnsResolve(object):
@@ -37,7 +36,7 @@ class DnsResolve(object):
             query_type, qname_object = self.build_query(query, query_type)
             # try:
             dns_query = dns.message.make_query(qname=qname_object, rdtype=query_type)
-            dns_response = dns.query.udp(q=dns_query, where=server_ip, timeout=10)
+            dns_response = dns.query.udp(q=dns_query, where=server_ip, timeout=MAX_TIME)
             v = self.response_handler(dns_response, query)
             if v:
                 ans_section, ip_list = v
@@ -106,10 +105,10 @@ class DnsResolve(object):
         ans = re.findall(regex, ans_section, re.MULTILINE | re.DOTALL)
         ans = "\n".join([self.transform(i) for i in ans[0].lstrip().split("\n") if i])
         end = time.time()
-        self.query_time = (end - self.start) * 100
+        self.query_time = (end - self.start) * 1000
         date = time.strftime("%c")
-        # print text_template.format(question=self.query, question_type=self.query_type, answer=ans,
-        #                            query_time=self.query_time, date=date, message_size=62)
+        print text_template.format(question=self.query, question_type=self.query_type, answer=ans,
+                                   query_time=self.query_time, date=date, message_size=62)
 
     def transform(self, txt):
         return self.query + " " + " ".join(txt.split()[1:])
