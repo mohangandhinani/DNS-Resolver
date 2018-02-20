@@ -8,11 +8,8 @@ from config import *
 
 
 class DnsResolve(object):
-    def __init__(self,query=None,query_type=None):
-        if not query and not query_type:
-            self.query, self.query_type = self.arg_parse()
-        else:
-            self.query, self.query_type = query,query_type
+    def __init__(self, query=None, query_type=None):
+        self.query, self.query_type = self.arg_parse()
         self.query_time = None
 
     def execute(self):
@@ -22,11 +19,12 @@ class DnsResolve(object):
 
     def arg_parse(self):
         if len(sys.argv) == 2:
-            name, addr_type = sys.argv[1], None
+            name, addr_type = sys.argv[1], "A"
         elif len(sys.argv) >= 3:
             name, addr_type = sys.argv[1], sys.argv[2]
         else:
-            name, addr_type = None, None
+            print "please provide input arguments <name> <type> format"
+            exit(0)
         return name, addr_type
 
     def launch_queries(self, query_type=None, query=None, servers_to_resolve=root_servers):
@@ -46,7 +44,7 @@ class DnsResolve(object):
             #     exception_handler(e)
 
     def build_query(self, query, query_type):
-        return q_type.get(query_type,dns.rdatatype.CNAME), dns.name.from_text(query) if query.isalpha() else query
+        return q_type.get(query_type, dns.rdatatype.CNAME), dns.name.from_text(query) if query.isalpha() else query
 
     def response_handler(self, dns_response, query):
         if dns_response.rcode() == SUCCESS:
@@ -64,15 +62,15 @@ class DnsResolve(object):
             return None, "dns response failed with rcode {0}".format(dns_response.rcode())
 
     def answer_section_handler(self, dns_response):
-        if self.query_type in("NS","MX"):
-            return dns_response,["127.0.0.1"]
+        if self.query_type in ("NS", "MX"):
+            return dns_response, ["127.0.0.1"]
         ans_section = dns_response.answer
         for answer in ans_section:
             if self.typ(answer) == CNAME:
-                if self.query_type!="CNAME":
+                if self.query_type != "CNAME":
                     return self.launch_queries(query_type="CNAME", query=str(answer.items[0]))
                 else:
-                    return dns_response,["127.0.0.1"]
+                    return dns_response, ["127.0.0.1"]
             else:
                 ip_list = []
                 for ans in ans_section:
@@ -109,7 +107,7 @@ class DnsResolve(object):
         self.query_time = (end - self.start) * 1000
         date = time.strftime("%c")
         print text_template.format(question=self.query, question_type=self.query_type, answer=ans,
-                                   query_time=self.query_time, date=date, message_size=62)
+                                   query_time=self.query_time, date=date, message_size=len(ans_section)/3)
 
     def transform(self, txt):
         return self.query + " " + " ".join(txt.split()[1:])
