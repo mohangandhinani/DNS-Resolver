@@ -4,7 +4,7 @@ import time
 
 import dns.query
 
-from COMMON.config import *
+from config import *
 
 
 class DnsResolve(object):
@@ -101,6 +101,7 @@ class DnsResolve(object):
         return self.launch_queries(servers_to_resolve=ip_add_list, query=query)
 
     def formatter(self, ans_section):
+        # print(ans_section)
         regex = r"ANSWER(.*?);"
         ans = re.findall(regex, ans_section, re.MULTILINE | re.DOTALL)
         ans = "\n".join([self.transform(i) for i in ans[0].lstrip().split("\n") if i])

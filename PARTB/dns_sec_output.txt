@@ -1,0 +1,4 @@
+python dns_sec.py verisign.com  - (verified,supported)
+python dns_sec.py google.com  - (not supported)
+python dns_sec.py youtube.com  - (not supported)
+python dns_sec.py dnssec-failed.org  - (verification failed)

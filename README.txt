@@ -3,8 +3,7 @@ libraries :
 1)pycrypto
 2)dnspython
 
-instructions to run program:
-
+instructions to run program:(after cd to the respective folder)
 PART A
 python mydig.py cs.stonybrook.edu NS
 other commands and detailed output has been explained in the mydig_output.txt

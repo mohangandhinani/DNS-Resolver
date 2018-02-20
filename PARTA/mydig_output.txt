@@ -1,5 +1,5 @@
 input :
-python mydig cs.stonybrook.edu NS
+python mydig.py cs.stonybrook.edu NS
 
 output
 QUESTION SECTION:
@@ -14,7 +14,7 @@ Query time: 16.7999982834 msec
 WHEN: 02/18/18 14:08:30
 MSG SIZE rcvd: 60
 -------------------------------------------------------------------------------------------------
-python mydig cs.stonybrook.edu  MX
+python mydig.py cs.stonybrook.edu  MX
 output
 QUESTION SECTION:
 cs.stonybrook.edu IN MX
@@ -30,7 +30,7 @@ Query time: 23.0999946594 msec
 WHEN: 02/18/18 14:09:04
 MSG SIZE rcvd: 65
 -------------------------------------------------------------------------------------------------------------------------------
-python mydig cs.stonybrook.edu  A
+python mydig.py cs.stonybrook.edu  A
 output
 
 QUESTION SECTION:
@@ -43,7 +43,7 @@ Query time: 24.5000123978 msec
 WHEN: 02/18/18 14:09:42
 MSG SIZE rcvd: 67
 -------------------------------------------------------------------------------------------------------------
-python mydig www.cnn.com  CNAME
+python mydig.py www.cnn.com  CNAME
 output
 QUESTION SECTION:
 www.cnn.com IN CNAME

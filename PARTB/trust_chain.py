@@ -1,6 +1,6 @@
 import dns.dnssec as sec
 
-from COMMON.config import *
+from config import *
 
 
 class TrustChain(object):

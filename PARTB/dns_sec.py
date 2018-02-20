@@ -4,16 +4,13 @@ import time
 
 import dns.query
 
-from COMMON.config import *
+from config import *
 from trust_chain import TrustChain
 
 
 class DnsResolveDnsSec(object):
-    def __init__(self, query=None, query_type=None):
-        if not query and not query_type:
-            self.query, self.query_type = self.arg_parse()
-        else:
-            self.query, self.query_type = query, query_type
+    def __init__(self, query=None, query_type="A"):
+        self.query, self.query_type = self.arg_parse()
         self.query_time = None
         self.zone_name = None
         self.keys_record = None
@@ -25,9 +22,8 @@ class DnsResolveDnsSec(object):
         self.formatter(str(ans_section))
 
     def arg_parse(self):
-        print(sys.argv)
         if len(sys.argv) == 2:
-            name, addr_type = sys.argv[1], None
+            name, addr_type = sys.argv[1], "A"
         elif len(sys.argv) == 3:
             name, addr_type = sys.argv[1], sys.argv[2]
         else:
