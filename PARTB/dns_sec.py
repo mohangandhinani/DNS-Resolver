@@ -15,6 +15,7 @@ class DnsResolveDnsSec(object):
         self.zone_name = None
         self.keys_record = None
         self.from_ip = None
+        self.add_flag = 0
 
     def execute(self):
         self.start = time.time()
@@ -36,17 +37,19 @@ class DnsResolveDnsSec(object):
         query = query if query else self.query
         for server_ip in servers_to_resolve:
             query_type, qname_object = self.build_query(query, query_type)
-            # try:
-            self.dnssec(qname_object, query_type, server_ip)
-            dns_query = dns.message.make_query(qname=qname_object, rdtype=query_type)
-            dns_response = dns.query.udp(q=dns_query, where=server_ip, timeout=10)
-            v = self.response_handler(dns_response, query)
-            if v:
-                ans_section, ip_list = v
-                if ip_list:
-                    return ans_section, ip_list
-            # except Exception as e:
-            #     exception_handler(e)
+            try:
+                if self.add_flag == 0:
+                    self.dnssec(qname_object, query_type, server_ip)
+                dns_query = dns.message.make_query(qname=qname_object, rdtype=query_type)
+                dns_response = dns.query.udp(q=dns_query, where=server_ip, timeout=10)
+                v = self.response_handler(dns_response, query)
+                if v:
+                    ans_section, ip_list = v
+                    if ip_list:
+                        return ans_section, ip_list
+            except Exception as e:
+                print  "DNSSec verification failed"
+                exit(0)
 
     def dnssec(self, qname_object, query_type, server_ip):
         try:
@@ -77,33 +80,38 @@ class DnsResolveDnsSec(object):
                 print "DNSSEC not supported"
                 exit(0)
             except Exception as e:
-                print "DNSSec verification failed"
+                print "DNSSec Verification failed"
                 exit(0)
-
+        if not self.verify_chain_of_trust(to_ip=server_ip):
+            print "DNSSec verification Failed"
+            exit(0)
         if dns_response.authority:
             self.zone_name = dns_response.authority[0].name
             # to do : validate authority
-        self.verify_chain_of_trust(to_ip=server_ip)
 
-    def nsec_check(self,dns_response):
+
+    def nsec_check(self, dns_response):
         if dns_response.answer:
             for rd in dns_response.answer:
-                if self.typ(rd) in (NSEC,NSEC3):
+                if self.typ(rd) in (NSEC, NSEC3):
                     return True
         if dns_response.additional:
             for rd in dns_response.additional:
-                if self.typ(rd) in (NSEC,NSEC3):
+                if self.typ(rd) in (NSEC, NSEC3):
                     return True
         return False
 
     def verify_chain_of_trust(self, to_ip):
-        if not self.from_ip:  # root check
-            self.validate_ksk_keys()
+        if self.from_ip == None:
+            self.from_ip = to_ip
+            return True
         else:
-            rc,message = TrustChain(parent=self.from_ip, child=to_ip, query=self.get_zone_name_obj()).validate()
+            rc = TrustChain(parent=self.from_ip, child=to_ip, query=self.get_zone_name_obj()).validate()
             if not rc:
-                print "DNSSec verification failedd"
+                print "DNsSec verification failed"
                 exit(0)
+        self.from_ip = to_ip
+        return True
 
     def validate_ksk_keys(self):
         if self.keys_record:
@@ -112,13 +120,13 @@ class DnsResolveDnsSec(object):
                 if key.flags == KSK_FLAG:
                     # key = str(key).split()[-1]
                     if key not in root_ksk:
-                        print "present keys",key
-                        print"list1",root_ksk[0]
+                        print "present keys", key
+                        print"list1", root_ksk[0]
                         print"list2", root_ksk[1]
                         print "DNSException :ksk key not valid  root key"
                         exit(0)
         else:
-            print("DNSSec verification failed")
+            print("DNSSec verification faileD")
             exit(0)
 
     def validate_record(self, r1, r2):
@@ -146,7 +154,7 @@ class DnsResolveDnsSec(object):
                 if v:
                     return v
         else:
-            return None, "DNSSec verification failed"
+            return None, "DNSSec verificatioN failed"
 
     def answer_section_handler(self, dns_response):
         if self.query_type in ("NS", "MX"):
@@ -172,7 +180,9 @@ class DnsResolveDnsSec(object):
         final_ip_list = []
         auth_sever_names = [server_name for server_obj in auth_section for server_name in server_obj.items]
         for auth_sever_name in auth_sever_names:
+            self.add_flag = 1
             message, ip_list = self.launch_queries(query_type='A', query=str(auth_sever_name))
+            self.add_flag = 0
             final_ip_list.extend(ip_list)
         return self.launch_queries(servers_to_resolve=final_ip_list)
 

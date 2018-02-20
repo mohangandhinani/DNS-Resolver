@@ -5,35 +5,47 @@ from config import *
 
 class TrustChain(object):
     def __init__(self, parent, child, query):
+        # print "query", query
+        # print "parent", "child", parent, child,"\n"
         self.parent = parent
         self.child = child
         self.query = query
 
     def validate(self):
-        p_digest_l, p_algo = self.parent_data_digest()
-        ksk_list, message = self.child_data_digest()
+        # print("hey..")
+        digest_algo_list = self.parent_data_digest()
+        ksk_list = self.child_data_digest()
         for ksk in ksk_list:
-            for p_digest in p_digest_l:
-                if p_digest == sec.make_ds(self.query, ksk, p_algo).digest:
+            for p_digest, p_algo in digest_algo_list:
+                if p_digest == sec.make_ds(name = self.query, key = ksk, algorithm = p_algo).digest:
                     return True
         else:
-            return False, "parent and child digest did not match"
+            return False
 
     def parent_data_digest(self):
         p_q = dns.message.make_query(qname=self.query, want_dnssec=True, rdtype=DS)
         p_r = dns.query.tcp(where=self.parent, q=p_q, timeout=MAX_TIME)
-        p_digest, p_algo = self.get_digest_algo(p_r)
-        if p_digest and p_algo:
-            return p_digest, p_algo
-        else:
-            return None, "one of digest,algo misiing"
+        return self.get_digest_algo(p_r)
 
     def get_digest_algo(self, p_r):
-        if p_r.answer[0].items:
-            obj_list = p_r.answer[0].items[0]
-            return [d.digest for d in obj_list[0]], algo.get(obj_list[0].digest_type, None)
-        else:
-            return None, None
+        digest_algo_list = []
+        if p_r.answer:
+            for rrset in p_r.answer:
+                for rdata in rrset.items:
+                    if rdata.rdtype == DS:
+                        digest_algo_list.append((rdata.digest, algo.get(rdata.digest_type, None)))
+
+        if p_r.authority:
+            for rrset in p_r.authority:
+                for rdata in rrset.items:
+                    if rdata.rdtype == DS:
+                        digest_algo_list.append((rdata.digest, algo.get(rdata.digest_type, None)))
+        if p_r.additional:
+            for rrset in p_r.additional:
+                for rdata in rrset.items:
+                    if rdata.rdtype == DS:
+                        digest_algo_list.append((rdata.digest, algo.get(rdata.digest_type, None)))
+        return digest_algo_list
 
     def child_data_digest(self):
         c_q = dns.message.make_query(qname=self.query, want_dnssec=True, rdtype=DNSKEY)
@@ -41,16 +53,30 @@ class TrustChain(object):
         return self.validate_child_response(c_r)
 
     def validate_child_response(self, c_r):
-        if c_r.answer:
-            ksk = TrustChain.extract_ksk(c_r)
-            if ksk:
-                return ksk, "ksk present"
-            else:
-                return False, "KSK not configured"
-        else:
-            return False, "NO DNSSEC"
+        return self.extract_ksk(c_r)
 
-    @staticmethod
-    def extract_ksk(c_r):
-        ksk_objs = [obj for obj in c_r.answer[0].items if obj.flags == KSK_FLAG]
-        return ksk_objs if ksk_objs else False
+    def extract_ksk(self, c_r):
+        ksk_list = []
+        if c_r.additional:
+            for rrset in c_r.additional:
+                if rrset.rdtype == DNSKEY:
+                    for rdata in rrset.items:
+                        if rdata.flags == KSK_FLAG:
+                            ksk_list.append(rdata)
+
+        if c_r.answer:
+            for rrset in c_r.answer:
+                if rrset.rdtype == DNSKEY:
+                    for rdata in rrset.items:
+                        if rdata.flags == KSK_FLAG:
+                            ksk_list.append(rdata)
+
+        if c_r.authority:
+            for rrset in c_r.authority:
+                if rrset.rdtype == DNSKEY:
+                    for rdata in rrset.items:
+                        if rdata.flags == KSK_FLAG:
+                            ksk_list.append(rdata)
+
+
+        return ksk_list

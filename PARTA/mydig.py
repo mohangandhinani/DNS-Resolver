@@ -32,16 +32,17 @@ class DnsResolve(object):
         query = query if query else self.query
         for server_ip in servers_to_resolve:
             query_type, qname_object = self.build_query(query, query_type)
-            # try:
-            dns_query = dns.message.make_query(qname=qname_object, rdtype=query_type)
-            dns_response = dns.query.udp(q=dns_query, where=server_ip, timeout=MAX_TIME)
-            v = self.response_handler(dns_response, query)
-            if v:
-                ans_section, ip_list = v
-                if ip_list:
-                    return ans_section, ip_list
-            # except Exception as e:
-            #     exception_handler(e)
+            try:
+                dns_query = dns.message.make_query(qname=qname_object, rdtype=query_type)
+                dns_response = dns.query.udp(q=dns_query, where=server_ip, timeout=MAX_TIME)
+                v = self.response_handler(dns_response, query)
+                if v:
+                    ans_section, ip_list = v
+                    if ip_list:
+                        return ans_section, ip_list
+            except Exception as e:
+                print "could not fetch records"
+                exit(0)
 
     def build_query(self, query, query_type):
         return q_type.get(query_type, dns.rdatatype.CNAME), dns.name.from_text(query) if query.isalpha() else query
